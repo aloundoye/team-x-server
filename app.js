@@ -5,15 +5,17 @@ const productsRoutes = require('./routes/products-routes');
 
 const app = express();
 
-app.use('/api/products',productsRoutes);
+app.use(bodyParser.json());
 
-app.use((error, req,res,next)=>{
-    if(res.headerSent){
-        return next(error);
-    }
+app.use('/api/products', productsRoutes);
 
-    res.status(error.code || 500);
-    res.json({message: error.message || 'Une erreur inconnue est survenue!'})
-})
+app.use((error, req, res, next) => {
+  if (res.headerSent) {
+    return next(error);
+  }
 
-app.listen(5000)
+  res.status(error.code || 500);
+  res.json({ message: error.message || 'Une erreur inconnue est survenue!' });
+});
+
+app.listen(5000);
