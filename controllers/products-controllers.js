@@ -16,7 +16,24 @@ let DUMMY_PRODUCTS = [
 ];
 
 const getProducts = async (req, res, next) => {
-  res.json({ DUMMY_PRODUCTS });
+  let products;
+
+  try {
+    products = await Product.find();
+  } catch (err) {
+    const error = new HttpError('Aucun produits trouver', 404);
+
+    return next(error);
+  }
+
+  if (!products) {
+    const error = new HttpError('Aucun produits trouver', 404);
+    return next(error);
+  }
+
+  res.json({
+    products: (await products).map((product) => product.toObject({ getters: true })),
+  });
 };
 
 const getProductById = async (req, res, next) => {
@@ -39,15 +56,28 @@ const getProductById = async (req, res, next) => {
   res.json({ product: product.toObject({ getters: true }) });
 };
 
-const getProductsByUserId = (req, res, next) => {
+const getProductsByUserId = async (req, res, next) => {
   const userId = req.params.id;
-  const products = DUMMY_PRODUCTS.filter((p) => p.creator === userId);
+
+  let products;
+  try {
+    products = Product.find({ creator: userId });
+  } catch (err) {
+    const error = new HttpError(
+      'Produits non trouver pour ce utilisateur',
+      404
+    );
+
+    return next(error);
+  }
 
   if (!products || products.length === 0) {
     return next(new HttpError('Produits non trouver pour ce utilisateur', 404));
   }
 
-  res.json({ products });
+  res.json({
+    products: (await products).map((product) => product.toObject({ getters: true })),
+  });
 };
 
 const createProduct = async (req, res, next) => {
