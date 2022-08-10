@@ -1,6 +1,8 @@
 const { v4: uuid } = require('uuid');
-const HttpError = require('../models/http-error');
 const { validationResult } = require('express-validator');
+
+const HttpError = require('../models/http-error');
+const User = require('../models/user');
 
 const DUMMY_USERS = [
   {
@@ -15,31 +17,51 @@ const getUsers = (req, res, next) => {
   res.json({ users: DUMMY_USERS });
 };
 
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Donees saisies incorrectes, veillez reverifier', 422);
+    return next(
+      new HttpError('Donees saisies incorrectes, veillez reverifier', 422)
+    );
   }
 
-  const { name, email, password } = req.body;
+  const { firstname, lastname, email, password, products } = req.body;
 
-  const hasUser = DUMMY_USERS.find((u) => u.email === email);
-
-  if (hasUser) {
-    throw new HttpError('Email existe deja', 422);
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ email });
+  } catch (err) {
+    const error = new HttpError(
+      "Echec de l'inscription, veillez reessayez plus tard",
+      500
+    );
+    return next(error);
   }
 
-  const createdUser = {
-    id: uuid(),
-    name,
+  if (existingUser) {
+    return next(
+      new HttpError('Utilisateur existe deja, veillez vous connecter', 422)
+    );
+  }
+
+  const createdUser = new User({
+    firstname,
+    lastname,
     email,
     password,
-  };
+    image: 'https://www.tradeinn.com/f/125/1252953/vans-old-skool-trainers.jpg',
+    products,
+  });
 
-  DUMMY_USERS.push(createdUser);
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError("Erreur de creation de l'utilisateur", 500);
+    return next(error);
+  }
 
-  res.status(201).json({ user: createdUser });
+  res.status(201).json({ user: createdUser.toObject({ getters: true }) });
 };
 
 const login = (req, res, next) => {

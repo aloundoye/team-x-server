@@ -1,6 +1,7 @@
-const HttpError = require('../models/http-error');
 const { v4: uuid } = require('uuid');
 const { validationResult } = require('express-validator');
+
+const HttpError = require('../models/http-error');
 const Product = require('../models/product');
 
 const getProducts = async (req, res, next) => {
@@ -76,7 +77,9 @@ const createProduct = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Donees saisies incorrectes, veillez reverifier', 422);
+    return next(
+      new HttpError('Donees saisies incorrectes, veillez reverifier', 422)
+    );
   }
 
   const { name, price, quantity, creator } = req.body;
@@ -103,7 +106,9 @@ const updateProductById = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    throw new HttpError('Donees saisies incorrectes, veillez reverifier', 422);
+    return next(
+      new HttpError('Donees saisies incorrectes, veillez reverifier', 422)
+    );
   }
 
   const { name, price, quantity } = req.body;
