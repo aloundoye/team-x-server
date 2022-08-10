@@ -1,6 +1,7 @@
 const HttpError = require('../models/http-error');
 const { v4: uuid } = require('uuid');
 const { validationResult } = require('express-validator');
+const Product = require('../models/product');
 
 let DUMMY_PRODUCTS = [
   {
@@ -20,7 +21,6 @@ const getProducts = (req, res, next) => {
 
 const getProductById = (req, res, next) => {
   const productId = req.params.id;
-  const product = DUMMY_PRODUCTS.find((p) => p.id === productId);
 
   if (!product) {
     throw new HttpError('Produit non trouver', 404);
@@ -40,7 +40,7 @@ const getProductsByUserId = (req, res, next) => {
   res.json({ products });
 };
 
-const createProduct = (req, res, next) => {
+const createProduct = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -49,15 +49,20 @@ const createProduct = (req, res, next) => {
 
   const { name, price, quantity, creator } = req.body;
 
-  const createdProduct = {
-    id: uuid(),
+  const createdProduct = new Product({
     name,
     price,
     quantity,
+    image: 'https://www.tradeinn.com/f/125/1252953/vans-old-skool-trainers.jpg',
     creator,
-  };
+  });
 
-  DUMMY_PRODUCTS.push(createdProduct);
+  try {
+    await createdProduct.save();
+  } catch (err) {
+    const error = new HttpError('Erreur de creation du produit', 500);
+    return next(error);
+  }
 
   res.status(201).json(createdProduct);
 };

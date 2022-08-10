@@ -1,8 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const productsRoutes = require('./routes/products-routes');
-const usersRoutes = require('./routes/users-routes')
+const usersRoutes = require('./routes/users-routes');
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -25,4 +26,13 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || 'Une erreur inconnue est survenue!' });
 });
 
-app.listen(5000);
+mongoose
+  .connect('mongodb+srv://alou:dakar1996@cluster0.yluko.mongodb.net/products?retryWrites=true&w=majority')
+  .then(() => {
+    app.listen(5000);
+    
+  })
+  .catch(err=>{
+    console.log(err);
+  });
+
