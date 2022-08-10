@@ -15,18 +15,28 @@ let DUMMY_PRODUCTS = [
   },
 ];
 
-const getProducts = (req, res, next) => {
+const getProducts = async (req, res, next) => {
   res.json({ DUMMY_PRODUCTS });
 };
 
-const getProductById = (req, res, next) => {
+const getProductById = async (req, res, next) => {
   const productId = req.params.id;
 
-  if (!product) {
-    throw new HttpError('Produit non trouver', 404);
+  let product;
+  try {
+    product = await Product.findById(productId);
+  } catch (err) {
+    const error = new HttpError('Produit non trouver', 500);
+
+    return next(error);
   }
 
-  res.json({ product });
+  if (!product) {
+    const error = new HttpError('Produit non trouver', 404);
+    return next(error);
+  }
+
+  res.json({ product: product.toObject({ getters: true }) });
 };
 
 const getProductsByUserId = (req, res, next) => {
