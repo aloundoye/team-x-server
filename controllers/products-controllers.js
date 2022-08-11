@@ -15,15 +15,13 @@ const getProducts = async (req, res, next) => {
     return next(error);
   }
 
-  if (!products) {
-    const error = new HttpError('Aucun produits trouver', 404);
+  if (!products || products.length === 0) {
+    const error = new HttpError('Aucun produit trouver', 404);
     return next(error);
   }
 
   res.json({
-    products: (await products).map((product) =>
-      product.toObject({ getters: true })
-    ),
+    products: products.map((product) => product.toObject({ getters: true })),
   });
 };
 
@@ -67,9 +65,7 @@ const getProductsByUserId = async (req, res, next) => {
   }
 
   res.json({
-    products: (await products).map((product) =>
-      product.toObject({ getters: true })
-    ),
+    products: products.map((product) => product.toObject({ getters: true })),
   });
 };
 
