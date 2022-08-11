@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -27,12 +28,12 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect('mongodb+srv://alou:dakar1996@cluster0.yluko.mongodb.net/products?retryWrites=true&w=majority')
+  .connect(
+    `mongodb+srv://${process.env.USER}:${process.env.PASSWORD}@cluster0.yluko.mongodb.net/products?retryWrites=true&w=majority`
+  )
   .then(() => {
     app.listen(5000);
-    
   })
-  .catch(err=>{
+  .catch((err) => {
     console.log(err);
   });
-
