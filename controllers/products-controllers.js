@@ -3,6 +3,8 @@ const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const Product = require('../models/product');
+const User = require('../models/user');
+const { default: mongoose } = require('mongoose');
 
 const getProducts = async (req, res, next) => {
   let products;
@@ -88,8 +90,30 @@ const createProduct = async (req, res, next) => {
     creator,
   });
 
+  let user;
+
   try {
-    await createdProduct.save();
+    user = await User.findById(creator);
+  } catch (err) {
+    const error = new HttpError(
+      'Erreur de creation du produit, veillez ressayer',
+      500
+    );
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError('Utilisateur introuvable', 404);
+    return next(error);
+  }
+
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await createdProduct.save({ session: sess });
+    user.products.push(createdProduct);
+    await user.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError('Erreur de creation du produit', 500);
     return next(error);
@@ -143,15 +167,24 @@ const deleteProductById = async (req, res, next) => {
   let product;
 
   try {
-    product = await Product.findById(productId);
+    product = await Product.findById(productId).populate('creator');
   } catch (err) {
     const error = new HttpError('Produit non trouver', 404);
+    return next(error);
+  }
 
+  if (!product) {
+    const error = new HttpError('Produit non trouver', 404);
     return next(error);
   }
 
   try {
-    product.remove();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await product.remove({ session: sess });
+    product.creator.products.pull(product);
+    await product.creator.save({ session: sess });
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       'Erreur lors de la supprission du produit',
