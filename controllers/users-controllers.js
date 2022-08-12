@@ -33,7 +33,7 @@ const signup = async (req, res, next) => {
     );
   }
 
-  const { firstname, lastname, email, password} = req.body;
+  const { firstname, lastname, email, password } = req.body;
 
   let existingUser;
   try {
@@ -58,7 +58,7 @@ const signup = async (req, res, next) => {
     email,
     password,
     image: 'https://www.tradeinn.com/f/125/1252953/vans-old-skool-trainers.jpg',
-    products:[],
+    products: [],
   });
 
   try {
@@ -90,7 +90,10 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({ message: 'Logged in!' });
+  res.json({
+    message: 'Logged in!',
+    user: existingUser.toObject({ getters: true }),
+  });
 };
 
 exports.getUsers = getUsers;

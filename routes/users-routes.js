@@ -11,7 +11,7 @@ router.post(
   '/signup',
   [
     check('firstname').not().isEmpty(),
-    check('lastname').not().isEmpty(),    
+    check('lastname').not().isEmpty(),
     check('email').normalizeEmail(),
     check('password').not().isEmpty(),
   ],
