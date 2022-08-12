@@ -66,7 +66,6 @@ const getProductsByUserId = async (req, res, next) => {
     return next(new HttpError('Produits non trouver pour ce utilisateur', 404));
   }
 
-  console.log(products);
 
   res.json({
     products: products.map((product) => product.toObject({ getters: true })),
