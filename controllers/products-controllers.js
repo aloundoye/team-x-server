@@ -52,7 +52,7 @@ const getProductsByUserId = async (req, res, next) => {
 
   let products;
   try {
-    products = Product.find({ creator: userId });
+    products = await Product.find({ creator: userId });
   } catch (err) {
     const error = new HttpError(
       'Produits non trouver pour ce utilisateur',
@@ -65,6 +65,8 @@ const getProductsByUserId = async (req, res, next) => {
   if (!products || products.length === 0) {
     return next(new HttpError('Produits non trouver pour ce utilisateur', 404));
   }
+
+  console.log(products);
 
   res.json({
     products: products.map((product) => product.toObject({ getters: true })),
